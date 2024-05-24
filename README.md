@@ -1,4 +1,4 @@
-**Project Team 6 DEC
+# **Project Team 6 DEC**
 _Josh B_ - _Shruti S_ - _Alex H_
 
 ## Objective:
