@@ -1,5 +1,5 @@
-Project Team 6 DEC
-Josh B - Shruti S - Alex H
+**Project Team 6 DEC
+_Josh B_ - _Shruti S_ - _Alex H_
 
 ## Objective:
 The use case for our project is to aggregate and serve transit times from multiple source locations to a single target destination in a major transit hub. We’ve identified Penn Station in NY as our target destination and will provide commuter transit times from x source locations across different modes of transportation (bus, train).
