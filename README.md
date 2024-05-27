@@ -15,3 +15,9 @@ The target consumers are daily commuters who are looking to identify the most ef
 | `Source Name`  | `Source Type` | `Source Docs`                               | `Endpoint` |
 | -------------  | ------------- | ------------                                | -----------|
 |  traveltime    | rest api      | https://docs.traveltime.com/api/sdks/python | https://docs.traveltime.com/api/reference/travel-time-distance-matrix|
+
+
+## Architecture:
+![image](https://github.com/alheston/dec-project-1/assets/167915392/346cd44a-ea94-439a-8164-dbe8258bf299)
+
+
