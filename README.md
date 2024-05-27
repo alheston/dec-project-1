@@ -18,6 +18,7 @@ The target consumers are daily commuters who are looking to identify the most ef
 
 
 ## Architecture:
-![image](https://github.com/alheston/dec-project-1/assets/167915392/346cd44a-ea94-439a-8164-dbe8258bf299)
+![image](https://github.com/alheston/dec-project-1/assets/167915392/aefa75a0-9ef4-496f-a5c9-04b9838c93e5)
+
 
 
