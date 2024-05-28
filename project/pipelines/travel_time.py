@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import os
-from connectors.travel_time_api import TravelTimeApiClient
-from assets.travel_time import extract_travel_time
+from project.connectors.travel_time_api import TravelTimeApiClient
+from project.assets.travel_time import extract_travel_time
 # from sqlalchemy import Table, MetaData, Column, Integer, String, Float
 
 
