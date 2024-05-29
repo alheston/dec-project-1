@@ -35,9 +35,22 @@ df: pd.DataFrame,
 postgresql_client: PostgreSqlClient,
 table: Table,
 metadata: MetaData,
+load_method: str
 ) -> None:
 
-
-    postgresql_client.write_to_table(
-        data=df.to_dict(orient="records"), table=table, metadata=metadata
-    )
+    if load_method == "insert":
+        postgresql_client.insert(
+            data=df.to_dict(orient="records"), table=table, metadata=metadata
+        )
+    elif load_method == "upsert":
+        postgresql_client.upsert(
+            data=df.to_dict(orient="records"), table=table, metadata=metadata
+        )
+    elif load_method == "overwrite":
+        postgresql_client.overwrite(
+            data=df.to_dict(orient="records"), table=table, metadata=metadata
+        )
+    else:
+        raise Exception(
+            "Please specify a correct load method: [insert, upsert, overwrite]"
+        )
