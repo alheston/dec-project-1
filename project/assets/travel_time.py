@@ -23,10 +23,12 @@ def extract_travel_time(response_data: dict)->pd.DataFrame:
 
 
 
-def add_date_time(df: pd.DataFrame) -> pd.DataFrame:
+def add_columns(df: pd.DataFrame) -> pd.DataFrame:
     current_timestamp = datetime.now()
     df['load_timestamp'] = current_timestamp
+    df['load_id'] = df['location_id'] + '_' + df['travel_time'].astype(str) + '_' + df['load_timestamp'].astype(str)
     return df
+    
 
 def load(
 df: pd.DataFrame,

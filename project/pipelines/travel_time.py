@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import os
 from project.connectors.travel_time_api import TravelTimeApiClient
 from project.assets.travel_time import extract_travel_time
-from project.assets.travel_time import add_date_time
+from project.assets.travel_time import add_columns
 from project.assets.travel_time import load
 from project.connectors.postgresql import PostgreSqlClient
 from sqlalchemy import Table, MetaData, Column, Integer, String, DateTime
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     travel_time_api_client = TravelTimeApiClient(api_key = API_KEY,app_id = APP_ID)
     data = travel_time_api_client.get_data(type="driving")
     df_travel_time = extract_travel_time(data)
-    df_with_timestamp = add_date_time(df_travel_time)
+    df_with_timestamp = add_columns(df_travel_time)
     # print(df_with_timestamp)
 
     postgresql_client = PostgreSqlClient(
@@ -39,8 +39,9 @@ if __name__ == "__main__":
         "travel_time_raw",
         metadata,
         Column("search_id", String),
-        Column("location_id", String, primary_key=True),
-        Column("travel_time", Integer, primary_key=True),
-        Column("load_timestamp", DateTime)
+        Column("location_id", String),
+        Column("travel_time", Integer),
+        Column("load_timestamp", DateTime),
+        Column("load_id", String, primary_key=True)
     )
     load(df=df_with_timestamp, postgresql_client=postgresql_client, table=table, metadata=metadata)
