@@ -1,7 +1,8 @@
 import pandas as pd
-
-
-
+from sqlalchemy import Table, MetaData
+# from project.connectors.postgresql import PostgreSqlClient
+from datetime import datetime
+from project.connectors.postgresql import PostgreSqlClient
 
 
 
@@ -16,5 +17,25 @@ def extract_travel_time(response_data: dict)->pd.DataFrame:
                 'travel_time': location['properties'][0]['travel_time']
             })
 
-    df = pd.DataFrame(data)
-    print(df)
+    return pd.DataFrame(data)
+     
+    # print(df)
+
+
+
+def add_date_time(df: pd.DataFrame) -> pd.DataFrame:
+    current_timestamp = datetime.now()
+    df['load_timestamp'] = current_timestamp
+    return df
+
+def load(
+df: pd.DataFrame,
+postgresql_client: PostgreSqlClient,
+table: Table,
+metadata: MetaData,
+) -> None:
+
+
+    postgresql_client.write_to_table(
+        data=df.to_dict(orient="records"), table=table, metadata=metadata
+    )

@@ -2,7 +2,10 @@ from dotenv import load_dotenv
 import os
 from project.connectors.travel_time_api import TravelTimeApiClient
 from project.assets.travel_time import extract_travel_time
-# from sqlalchemy import Table, MetaData, Column, Integer, String, Float
+from project.assets.travel_time import add_date_time
+from project.assets.travel_time import load
+from project.connectors.postgresql import PostgreSqlClient
+from sqlalchemy import Table, MetaData, Column, Integer, String, DateTime
 
 
 
@@ -18,5 +21,26 @@ if __name__ == "__main__":
     PORT = os.environ.get("PORT")
 
     travel_time_api_client = TravelTimeApiClient(api_key = API_KEY,app_id = APP_ID)
-    response_data = travel_time_api_client.get_data(type="driving")
-    df_travel_time = extract_travel_time(response_data=response_data)
+    data = travel_time_api_client.get_data(type="driving")
+    df_travel_time = extract_travel_time(data)
+    df_with_timestamp = add_date_time(df_travel_time)
+    # print(df_with_timestamp)
+
+    postgresql_client = PostgreSqlClient(
+        server_name=SERVER_NAME,
+        database_name=DATABASE_NAME,
+        username=DB_USERNAME,
+        password=DB_PASSWORD,
+        port=PORT,
+    )
+
+    metadata = MetaData()
+    table = Table(
+        "travel_time_raw",
+        metadata,
+        Column("search_id", String),
+        Column("location_id", String, primary_key=True),
+        Column("travel_time", Integer, primary_key=True),
+        Column("load_timestamp", DateTime)
+    )
+    load(df=df_with_timestamp, postgresql_client=postgresql_client, table=table, metadata=metadata)
