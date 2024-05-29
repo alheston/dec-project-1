@@ -6,12 +6,20 @@ from project.assets.travel_time import add_columns
 from project.assets.travel_time import load
 from project.connectors.postgresql import PostgreSqlClient
 from sqlalchemy import Table, MetaData, Column, Integer, String, DateTime
-
+from project.assets.pipeline_logging import PipelineLogging
 
 
 
 if __name__ == "__main__":
+    pipeline_logging = PipelineLogging(
+        pipeline_name="travel_time", log_folder_path="project/logs"
+    )
+
     load_dotenv()
+
+    pipeline_logging.logger.info("Starting pipeline run")
+    pipeline_logging.logger.info("Getting pipeline environment variables")
+
     API_KEY = os.environ.get("API_KEY")
     APP_ID = os.environ.get("APP_ID")
     DB_USERNAME = os.environ.get("DB_USERNAME")
@@ -20,12 +28,17 @@ if __name__ == "__main__":
     DATABASE_NAME = os.environ.get("DATABASE_NAME")
     PORT = os.environ.get("PORT")
 
+    pipeline_logging.logger.info("Creating Travel Time API client")
     travel_time_api_client = TravelTimeApiClient(api_key = API_KEY,app_id = APP_ID)
+
+    pipeline_logging.logger.info("Extracting data from Travel Time API")
     data = travel_time_api_client.get_data(type="driving")
     df_travel_time = extract_travel_time(data)
+    pipeline_logging.logger.info("Adding load_timestamp and load_id columns to dataframe")
     df_with_timestamp = add_columns(df_travel_time)
     # print(df_with_timestamp)
 
+    pipeline_logging.logger.info("Loading data to postgres")
     postgresql_client = PostgreSqlClient(
         server_name=SERVER_NAME,
         database_name=DATABASE_NAME,
@@ -45,3 +58,4 @@ if __name__ == "__main__":
         Column("load_id", String, primary_key=True)
     )
     load(df=df_with_timestamp, postgresql_client=postgresql_client, table=table, metadata=metadata)
+    pipeline_logging.logger.info("Pipeline run successful")
