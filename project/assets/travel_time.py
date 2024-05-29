@@ -20,17 +20,16 @@ def extract_travel_time(response_data: dict)->pd.DataFrame:
      
 
 # Function to remove spaces and special characters
-def remove_special_characters(text):
+def _remove_special_characters(text):
     # Replace special characters and spaces with empty string
     cleaned_text = ''.join(e for e in text if e.isalnum())
     return cleaned_text
 
 
 def add_columns(df: pd.DataFrame) -> pd.DataFrame:
-    current_timestamp = datetime.now()
-    df['load_timestamp'] = current_timestamp
-    df['load_id'] = df['location_id'] + '_' + df['travel_time'].astype(str) + '_' + df['load_timestamp'].astype(str)
-    df['load_id'] = df['load_id'].apply(remove_special_characters)
+    df['load_timestamp'] = datetime.now()
+    df['load_id'] = df['location_id'] + df['travel_time'].astype(str) + df['load_timestamp'].astype(str)
+    df['load_id'] = df['load_id'].apply(_remove_special_characters)
     return df
     
 
