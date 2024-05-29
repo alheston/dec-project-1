@@ -1,6 +1,5 @@
 import pandas as pd
 from sqlalchemy import Table, MetaData
-# from project.connectors.postgresql import PostgreSqlClient
 from datetime import datetime
 from project.connectors.postgresql import PostgreSqlClient
 
@@ -19,7 +18,7 @@ def extract_travel_time(response_data: dict)->pd.DataFrame:
 
     return pd.DataFrame(data)
      
-    # print(df)
+
 
 
 
