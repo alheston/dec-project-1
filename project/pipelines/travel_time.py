@@ -7,16 +7,30 @@ from project.assets.travel_time import load
 from project.connectors.postgresql import PostgreSqlClient
 from sqlalchemy import Table, MetaData, Column, Integer, String, DateTime
 from project.assets.pipeline_logging import PipelineLogging
+import yaml
+from pathlib import Path
 
 
 
 if __name__ == "__main__":
-    pipeline_logging = PipelineLogging(
-        pipeline_name="travel_time", log_folder_path="project/logs"
-    )
+    
 
     load_dotenv()
 
+    yaml_file_path = __file__.replace(".py", ".yaml")
+    if Path(yaml_file_path).exists():
+        with open(yaml_file_path) as yaml_file:
+            pipeline_config = yaml.safe_load(yaml_file)
+            config = pipeline_config.get("config")
+    else:
+        raise Exception(
+            f"Missing {yaml_file_path} file! Please create the yaml file with at least a `name` key for the pipeline name."
+        )
+
+
+    pipeline_logging = PipelineLogging(
+        pipeline_name="travel_time", log_folder_path=config.get("log_folder_path")
+    )
     pipeline_logging.logger.info("Starting pipeline run")
     pipeline_logging.logger.info("Getting pipeline environment variables")
 
