@@ -134,7 +134,7 @@ if __name__ == "__main__":
     )
     
     # set schedule
-    schedule.every(pipeline_config.get("schedule").get("run_seconds")).seconds.do(
+    schedule.every(pipeline_config.get("schedule").get("run_minutes")).seconds.do(
         run_pipeline,
         pipeline_name=PIPELINE_NAME,
         postgresql_logging_client=postgresql_logging_client,
