@@ -3,4 +3,4 @@ config:
   log_folder_path: "./project/logs"
 schedule:
   run_minutes: 5
-  poll_seconds: 2
+  poll_seconds: 10
