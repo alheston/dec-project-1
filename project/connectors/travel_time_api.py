@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Penn Station: lat=40.7500792, lng=-73.9913481
+# Penn Station(destination): lat=40.7500792, lng=-73.9913481
 # Hoboken: lat=40.7433066, lng=-74.0323752
 # Stamford: lat=41.0534302, lng=-73.5387341
 # Hackensack: lat=40.8871438, lng=-74.0410865
