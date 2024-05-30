@@ -43,7 +43,7 @@ def pipeline(config: dict, pipeline_logging: PipelineLogging):
 
     #Adds load_timestamp and load_id columns to the dataframe.
     df_with_timestamp = add_columns(df_travel_time)
-    
+
 
     pipeline_logging.logger.info("Loading data to postgres")
     #create instance of postgresqlclient class
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     )
     
     # set schedule
-    schedule.every(pipeline_config.get("schedule").get("run_minutes")).seconds.do(
+    schedule.every(pipeline_config.get("schedule").get("run_seconds")).seconds.do(
         run_pipeline,
         pipeline_name=PIPELINE_NAME,
         postgresql_logging_client=postgresql_logging_client,

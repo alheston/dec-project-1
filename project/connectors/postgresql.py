@@ -41,22 +41,6 @@ class PostgreSqlClient:
 
         self.engine = create_engine(connection_url)
 
-    # def write_to_table(
-    #     self, data: list[dict], table: Table, metadata: MetaData
-    # ) -> None:
-    #     key_columns = [
-    #         pk_column.name for pk_column in table.primary_key.columns.values()
-    #     ]
-    #     metadata.create_all(self.engine)  
-    #     insert_statement = postgresql.insert(table).values(data)
-    #     upsert_statement = insert_statement.on_conflict_do_update(
-    #         index_elements=key_columns,
-    #         set_={
-    #             c.key: c for c in insert_statement.excluded if c.key not in key_columns
-    #         }
-    #     )
-    #     self.engine.execute(upsert_statement)
-
 
 
 
