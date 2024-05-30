@@ -1,7 +1,11 @@
 import pandas as pd
-from sqlalchemy import Table, MetaData
 from datetime import datetime
 from project.connectors.postgresql import PostgreSqlClient
+from sqlalchemy.engine import URL, Engine
+from sqlalchemy import create_engine, Table, MetaData, Column
+from sqlalchemy.dialects import postgresql
+from jinja2 import Environment, FileSystemLoader, Template
+from sqlalchemy import inspect
 
 
 
@@ -57,3 +61,44 @@ load_method: str
         raise Exception(
             "Please specify a correct load method: [insert, upsert, overwrite]"
         )
+    
+
+def transform(engine: Engine, sql_template: Template, table_name: str):
+    extract_type = sql_template.make_module().config.get("extract_type")
+
+    if extract_type == "full":
+        full_sql = f"""
+        drop table if exists {table_name};
+        create table {table_name} as (
+        {sql_template.render()}
+        )"""
+        engine.execute(full_sql)
+    elif extract_type == "incremental":
+        # source_table_name = sql_template.make_module().config.get("source_table_name")
+        if inspect(engine).has_table(table_name):
+            incremental_column = sql_template.make_module().config.get(
+                "incremental_column"
+            )
+            sql_result = [
+                dict(row)
+                for row in engine.execute(
+                    f"select max({incremental_column}) as incremental_value from {table_name}"
+                ).all()
+            ]
+            incremental_value = sql_result[0].get("incremental_value")
+            inc_sql = sql_template.render(
+                is_incremental=True, incremental_value=incremental_value
+            )
+        else:
+            inc_sql = sql_template.render(is_incremental=False)
+
+        insert_sql = f"""
+        insert into {table_name} (
+        {inc_sql}
+        )"""
+        engine.execute(insert_sql)
+    else:
+        raise Exception(
+            f"Extract type {extract_type} is not supported. Please use either 'full' or 'incremental' extract type."
+    )
+
