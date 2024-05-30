@@ -1,15 +1,15 @@
 from dotenv import load_dotenv
 import os
-from project.connectors.travel_time_api import TravelTimeApiClient
-from project.assets.travel_time import extract_travel_time
-from project.assets.travel_time import add_columns
-from project.assets.travel_time import load
-from project.connectors.postgresql import PostgreSqlClient
+from connectors.travel_time_api import TravelTimeApiClient
+from assets.travel_time import extract_travel_time
+from assets.travel_time import add_columns
+from assets.travel_time import load
+from connectors.postgresql import PostgreSqlClient
 from sqlalchemy import Table, MetaData, Column, Integer, String, DateTime
-from project.assets.pipeline_logging import PipelineLogging
+from assets.pipeline_logging import PipelineLogging
 import yaml
 from pathlib import Path
-from project.assets.metadata_logging import MetaDataLogging, MetaDataLoggingStatus
+from assets.metadata_logging import MetaDataLogging, MetaDataLoggingStatus
 import schedule
 import time
 
