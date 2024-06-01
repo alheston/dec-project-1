@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Table, MetaData
+from sqlalchemy import create_engine, Table, MetaData, inspect
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.dialects import postgresql
 from sqlalchemy import (
@@ -22,7 +22,7 @@ class PostgreSqlClient:
         database_name: str,
         username: str,
         password: str,
-        port: int = 5432,
+        port: int = 5431,
     ):
         self.host_name = server_name
         self.database_name = database_name
@@ -38,20 +38,36 @@ class PostgreSqlClient:
             port=port,
             database=database_name
         )
-
+        print(f"Connection URL: {connection_url}")
         self.engine = create_engine(connection_url)
 
 
 
 
+    def execute_sql(self, sql: str) -> None:
+        self.engine.execute(sql)
+    
     def select_all(self, table: Table) -> list[dict]:
         return [dict(row) for row in self.engine.execute(table.select()).all()]
+
+    def table_exists(self, table_name: str) -> bool:
+        """
+        Checks if the table already exists in the database.
+        """
+        return inspect(self.engine).has_table(table_name)
 
     def create_table(self, metadata: MetaData) -> None:
         """
         Creates table provided in the metadata object
         """
         metadata.create_all(self.engine)
+    
+    def run_sql(self, sql: str) -> list[dict]:
+        """
+        Execute SQL code provided and returns the result in a list of dictionaries.
+        This method should only be used if you expect a resultset to be returned.
+        """
+        return [dict(row) for row in self.engine.execute(sql).all()]
 
     def drop_table(self, table_name: str) -> None:
         self.engine.execute(f"drop table if exists {table_name};")
@@ -78,3 +94,19 @@ class PostgreSqlClient:
             },
         )
         self.engine.execute(upsert_statement)
+
+    def get_metadata(self) -> MetaData:
+        """
+        Gets the metadata object for all tables for a given database
+        """
+        metadata = MetaData(bind=self.engine)
+        metadata.reflect()
+        return metadata
+
+    def get_table_schema(self, table_name: str) -> Table:
+        """
+        Gets the table schema and metadata
+        """
+        metadata = self.get_metadata()
+        return metadata.tables[table_name], metadata
+

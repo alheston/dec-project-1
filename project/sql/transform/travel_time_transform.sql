@@ -1,7 +1,7 @@
 {% set config = {
     "extract_type":"incremental",
     "incremental_column": "load_timestamp",
-    "source_table_name":"travel_time_raw"
+    "source_table_name":"travel_time_staging"
 } %}
 
 select

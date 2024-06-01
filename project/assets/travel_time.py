@@ -1,6 +1,6 @@
 import pandas as pd
 from datetime import datetime
-from project.connectors.postgresql import PostgreSqlClient
+from connectors.postgresql import PostgreSqlClient
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy import create_engine, Table, MetaData, Column
 from sqlalchemy.dialects import postgresql

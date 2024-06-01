@@ -1,0 +1,6 @@
+name: travel_time_source
+config: 
+  log_folder_path: "/Users/alexheston/dec-project-1/project/logs"
+schedule:
+  run_seconds: 5
+  poll_seconds: 2

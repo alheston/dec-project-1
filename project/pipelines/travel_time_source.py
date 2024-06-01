@@ -1,16 +1,16 @@
 from dotenv import load_dotenv
 import os
-from project.connectors.travel_time_api import TravelTimeApiClient
-from project.assets.travel_time import extract_travel_time
-from project.assets.travel_time import add_columns
-from project.assets.travel_time import load
-from project.assets.travel_time import transform
-from project.connectors.postgresql import PostgreSqlClient
+from connectors.travel_time_api import TravelTimeApiClient
+from assets.travel_time import extract_travel_time
+from assets.travel_time import add_columns
+from assets.travel_time import load
+from assets.travel_time import transform
+from connectors.postgresql import PostgreSqlClient
 from sqlalchemy import Table, MetaData, Column, Integer, String, DateTime
-from project.assets.pipeline_logging import PipelineLogging
+from assets.pipeline_logging import PipelineLogging
 import yaml
 from pathlib import Path
-from project.assets.metadata_logging import MetaDataLogging, MetaDataLoggingStatus
+from assets.metadata_logging import MetaDataLogging, MetaDataLoggingStatus
 import schedule
 import time
 from jinja2 import Environment, FileSystemLoader, Template
@@ -71,20 +71,20 @@ def pipeline(config: dict, pipeline_logging: PipelineLogging):
     load(df=df_with_timestamp, postgresql_client=postgresql_client, table=table, metadata=metadata, load_method="upsert")
     pipeline_logging.logger.info("Pipeline load to raw table successful")
 
-    pipeline_logging.logger.info("Transforming data")
-    transform_env = Environment(loader=FileSystemLoader("project/sql/transform"))
-    transform_table_name = "travel_time_transform"
-    transform_sql_template = transform_env.get_template(
-        f"{transform_table_name}.sql"
-    )
+    # pipeline_logging.logger.info("Transforming data")
+    # transform_env = Environment(loader=FileSystemLoader("project/sql/transform"))
+    # transform_table_name = "travel_time_transform"
+    # transform_sql_template = transform_env.get_template(
+    #     f"{transform_table_name}.sql"
+    # )
 
-    transform(
-        engine = engine,
-        sql_template = transform_sql_template,
-        table_name = transform_table_name
-    )
-    pipeline_logging.logger.info("Transformation and load to transform table complete")
-    pipeline_logging.logger.info("Pipeline run successful")
+    # transform(
+    #     engine = engine,
+    #     sql_template = transform_sql_template,
+    #     table_name = transform_table_name
+    # )
+    # pipeline_logging.logger.info("Transformation and load to transform table complete")
+    # pipeline_logging.logger.info("Pipeline run successful")
 
 
 def run_pipeline(
@@ -93,7 +93,7 @@ def run_pipeline(
     pipeline_config: dict,
 ):
     pipeline_logging = PipelineLogging(
-        pipeline_name="travel_time", 
+        pipeline_name="travel_time_source",
         log_folder_path=config.get("log_folder_path")
     )
 
