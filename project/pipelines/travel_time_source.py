@@ -126,8 +126,8 @@ if __name__ == "__main__":
     load_dotenv()
     LOGGING_SERVER_NAME = os.environ.get("LOGGING_SERVER_NAME")
     LOGGING_DATABASE_NAME = os.environ.get("LOGGING_DATABASE_NAME")
-    LOGGING_USERNAME = os.environ.get("LOGGING_USERNAME")
-    LOGGING_PASSWORD = os.environ.get("LOGGING_PASSWORD")
+    LOGGING_USERNAME = os.environ.get("LOGGING_DB_USERNAME")
+    LOGGING_PASSWORD = os.environ.get("LOGGING_DB_PASSWORD")
     LOGGING_PORT = os.environ.get("LOGGING_PORT")
     
     # get config variables, used to get file path for logging
