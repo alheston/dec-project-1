@@ -1,21 +1,24 @@
 from dotenv import load_dotenv
 import os
-from connectors.travel_time_api import TravelTimeApiClient
-from assets.travel_time import extract_travel_time, add_columns, load
-from connectors.postgresql import PostgreSqlClient
+from project.connectors.travel_time_api import TravelTimeApiClient
+from project.assets.travel_time import extract_travel_time
+from project.assets.travel_time import add_columns
+from project.assets.travel_time import load
+from project.assets.travel_time import transform
+from project.connectors.postgresql import PostgreSqlClient
 from sqlalchemy import Table, MetaData, Column, Integer, String, DateTime
-from assets.pipeline_logging import PipelineLogging
+from project.assets.pipeline_logging import PipelineLogging
 import yaml
 from pathlib import Path
-from assets.metadata_logging import MetaDataLogging, MetaDataLoggingStatus
+from project.assets.metadata_logging import MetaDataLogging, MetaDataLoggingStatus
 import schedule
 import time
-from jinja2 import Environment, FileSystemLoader
-from sqlalchemy.engine import URL, create_engine
-from graphlib import TopologicalSorter
-from assets.extract_load_transform import extract_load_from_source, transform, SQLTransform
+from jinja2 import Environment, FileSystemLoader, Template
+from sqlalchemy.engine import URL, Engine
+from sqlalchemy import create_engine, Table, MetaData, Column
 
-def extract_and_load_to_raw(config: dict, pipeline_logging: PipelineLogging):
+
+def pipeline(config: dict, pipeline_logging: PipelineLogging):
     pipeline_logging.logger.info("Starting pipeline run")
     pipeline_logging.logger.info("Getting pipeline environment variables")
 
@@ -27,8 +30,6 @@ def extract_and_load_to_raw(config: dict, pipeline_logging: PipelineLogging):
     SERVER_NAME = os.environ.get("SERVER_NAME")
     DATABASE_NAME = os.environ.get("DATABASE_NAME")
     PORT = os.environ.get("PORT")
-
-    pipeline_logging.logger.info("Creating Travel Time API client")
 
     pipeline_logging.logger.info("Creating Travel Time API client")
     
@@ -48,8 +49,7 @@ def extract_and_load_to_raw(config: dict, pipeline_logging: PipelineLogging):
 
 
     pipeline_logging.logger.info("Loading data to postgres")
-
-        #create instance of postgresqlclient class
+    #create instance of postgresqlclient class
     postgresql_client = PostgreSqlClient(
         server_name=SERVER_NAME,
         database_name=DATABASE_NAME,
@@ -71,60 +71,21 @@ def extract_and_load_to_raw(config: dict, pipeline_logging: PipelineLogging):
     load(df=df_with_timestamp, postgresql_client=postgresql_client, table=table, metadata=metadata, load_method="upsert")
     pipeline_logging.logger.info("Pipeline load to raw table successful")
 
+    pipeline_logging.logger.info("Transforming data")
+    transform_env = Environment(loader=FileSystemLoader("project/sql/transform"))
+    transform_table_name = "travel_time_transform"
+    transform_sql_template = transform_env.get_template(
+        f"{transform_table_name}.sql"
+    )
 
-def extract_transform_from_source(config: dict, pipeline_logging: PipelineLogging):
-    pipeline_logging.logger.info("Starting transformation step")
-    SOURCE_DATABASE_NAME = os.environ.get("DATABASE_NAME")
-    SOURCE_SERVER_NAME = os.environ.get("SERVER_NAME")
-    SOURCE_DB_USERNAME = os.environ.get("DB_USERNAME")
-    SOURCE_DB_PASSWORD = os.environ.get("DB_PASSWORD")
-    SOURCE_PORT = os.environ.get("PORT")
-    TARGET_DATABASE_NAME = os.environ.get("TARGET_DATABASE_NAME")
-    TARGET_SERVER_NAME = os.environ.get("TARGET_SERVER_NAME")
-    TARGET_DB_USERNAME = os.environ.get("TARGET_DB_USERNAME")
-    TARGET_DB_PASSWORD = os.environ.get("TARGET_DB_PASSWORD")
-    TARGET_PORT = os.environ.get("TARGET_PORT")
+    transform(
+        engine = engine,
+        sql_template = transform_sql_template,
+        table_name = transform_table_name
+    )
+    pipeline_logging.logger.info("Transformation and load to transform table complete")
+    pipeline_logging.logger.info("Pipeline run successful")
 
-    source_postgresql_client = PostgreSqlClient(
-        server_name=SOURCE_SERVER_NAME,
-        database_name=SOURCE_DATABASE_NAME,
-        username=SOURCE_DB_USERNAME,
-        password=SOURCE_DB_PASSWORD,
-        port=SOURCE_PORT,
-    )
-    target_postgresql_client = PostgreSqlClient(
-        server_name=SOURCE_SERVER_NAME,
-        database_name=SOURCE_DATABASE_NAME,
-        username=SOURCE_DB_USERNAME,
-        password=SOURCE_DB_PASSWORD,
-        port=SOURCE_PORT,
-    )
-    extract_template_environment = Environment(
-    loader=FileSystemLoader("/Users/alexheston/dec-project-1/project/sql/extract")
-    )
-    extract_load_from_source(
-        template_env=extract_template_environment,
-        source_postgresql_client=source_postgresql_client,
-        target_postgresql_client=target_postgresql_client
-    )
-    transform_template_environment = Environment(
-        loader=FileSystemLoader("/Users/alexheston/dec-project-1/project/sql/transform")
-    )
-    staging_travel_time_raw = SQLTransform(
-        table_name="travel_time_staging",
-        postgresql_client=source_postgresql_client,
-        environment=extract_template_environment,
-    )
-    serving_travel_time_transformed = SQLTransform(
-        table_name="travel_time_transform",
-        postgresql_client=target_postgresql_client,
-        environment=transform_template_environment,
-    )
-    print(serving_travel_time_transformed)
-    dag = TopologicalSorter()
-    dag.add(staging_travel_time_raw)
-    dag.add(serving_travel_time_transformed, staging_travel_time_raw)
-    transform(dag=dag)
 
 def run_pipeline(
     pipeline_name: str,
@@ -132,7 +93,7 @@ def run_pipeline(
     pipeline_config: dict,
 ):
     pipeline_logging = PipelineLogging(
-        pipeline_name="travel_time_source",
+        pipeline_name="travel_time", 
         log_folder_path=config.get("log_folder_path")
     )
 
@@ -143,10 +104,7 @@ def run_pipeline(
     )
     try:
         metadata_logger.log() 
-        extract_and_load_to_raw(
-            config=pipeline_config.get("config"), pipeline_logging=pipeline_logging
-        )
-        extract_transform_from_source(
+        pipeline(
             config=pipeline_config.get("config"), pipeline_logging=pipeline_logging
         )
         metadata_logger.log(
@@ -164,13 +122,15 @@ def run_pipeline(
 
 
 if __name__ == "__main__":
+    #get environment variables from .env file - used to create logger instance of client class to write logger data to table
     load_dotenv()
-    LOGGING_DATABASE_NAME = os.environ.get("LOGGING_DATABASE_NAME")
     LOGGING_SERVER_NAME = os.environ.get("LOGGING_SERVER_NAME")
-    LOGGING_DB_USERNAME = os.environ.get("LOGGING_DB_USERNAME")
-    LOGGING_DB_PASSWORD = os.environ.get("LOGGING_DB_PASSWORD")
+    LOGGING_DATABASE_NAME = os.environ.get("LOGGING_DATABASE_NAME")
+    LOGGING_USERNAME = os.environ.get("LOGGING_USERNAME")
+    LOGGING_PASSWORD = os.environ.get("LOGGING_PASSWORD")
     LOGGING_PORT = os.environ.get("LOGGING_PORT")
-
+    
+    # get config variables, used to get file path for logging
     yaml_file_path = __file__.replace(".py", ".yaml")
     if Path(yaml_file_path).exists():
         with open(yaml_file_path) as yaml_file:
@@ -185,11 +145,21 @@ if __name__ == "__main__":
     postgresql_logging_client = PostgreSqlClient(
         server_name=LOGGING_SERVER_NAME,
         database_name=LOGGING_DATABASE_NAME,
-        username=LOGGING_DB_USERNAME,
-        password=LOGGING_DB_PASSWORD,
+        username=LOGGING_USERNAME,
+        password=LOGGING_PASSWORD,
         port=LOGGING_PORT,
     )
     
+    target_connection = URL.create(
+        drivername = "postgresql+pg8000",
+        username = LOGGING_USERNAME,
+        password = LOGGING_PASSWORD,
+        host = LOGGING_SERVER_NAME,
+        port = LOGGING_PORT,
+        database = LOGGING_DATABASE_NAME
+    )
+    engine = create_engine(target_connection)
+    # set schedule
     schedule.every(pipeline_config.get("schedule").get("run_seconds")).seconds.do(
         run_pipeline,
         pipeline_name=PIPELINE_NAME,
@@ -200,5 +170,4 @@ if __name__ == "__main__":
     while True:
         schedule.run_pending()
         time.sleep(pipeline_config.get("schedule").get("poll_seconds"))
-
     
