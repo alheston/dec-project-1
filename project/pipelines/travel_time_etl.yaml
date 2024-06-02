@@ -1,5 +1,5 @@
-name: travel_time_source
-config: 
+name: travel_time_etl
+config:
   log_folder_path: "/Users/alexheston/dec-project-1/project/logs"
 schedule:
   run_seconds: 5
