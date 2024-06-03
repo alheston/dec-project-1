@@ -29,8 +29,6 @@ def extract_and_load_to_raw(config: dict, pipeline_logging: PipelineLogging):
     PORT = os.environ.get("PORT")
 
     pipeline_logging.logger.info("Creating Travel Time API client")
-
-    pipeline_logging.logger.info("Creating Travel Time API client")
     
     #creates instance of travelTimeApiClient class to connect to API and get data returned as JSON.
     travel_time_api_client = TravelTimeApiClient(api_key = API_KEY,app_id = APP_ID)
@@ -49,7 +47,7 @@ def extract_and_load_to_raw(config: dict, pipeline_logging: PipelineLogging):
 
     pipeline_logging.logger.info("Loading data to postgres")
 
-        #create instance of postgresqlclient class
+    #create instance of postgresqlclient class
     postgresql_client = PostgreSqlClient(
         server_name=SERVER_NAME,
         database_name=DATABASE_NAME,
@@ -57,7 +55,7 @@ def extract_and_load_to_raw(config: dict, pipeline_logging: PipelineLogging):
         password=DB_PASSWORD,
         port=PORT,
     )
-
+    
     metadata = MetaData()
     table = Table(
         "travel_time_raw",
@@ -115,11 +113,12 @@ def extract_transform_from_source(config: dict, pipeline_logging: PipelineLoggin
         postgresql_client=target_postgresql_client,
         environment=transform_template_environment,
     )
-    print(serving_travel_time_transformed)
+
     dag = TopologicalSorter()
     dag.add(staging_travel_time_raw)
     dag.add(serving_travel_time_transformed, staging_travel_time_raw)
     transform(dag=dag)
+    pipeline_logging.logger.info("Transformation step successful")
 
 def run_pipeline(
     pipeline_name: str,

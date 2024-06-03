@@ -38,10 +38,8 @@ class PostgreSqlClient:
             port=port,
             database=database_name
         )
-        print(f"Connection URL: {connection_url}")
+
         self.engine = create_engine(connection_url)
-
-
 
 
     def execute_sql(self, sql: str) -> None:
