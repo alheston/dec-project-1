@@ -28,5 +28,5 @@ class TravelTimeApiClient:
             return response.json()
         else:
             raise Exception(
-                        f"Failed to extract data from Open Weather API. Status Code: {response.status_code}. Response: {response.text}"
+                        f"Failed to extract data from Travel Time API. Status Code: {response.status_code}. Response: {response.text}"
                     )
