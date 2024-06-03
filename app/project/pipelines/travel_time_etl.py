@@ -8,7 +8,6 @@ from project.assets.pipeline_logging import PipelineLogging
 import yaml
 from pathlib import Path
 from project.assets.metadata_logging import MetaDataLogging, MetaDataLoggingStatus
-import schedule
 import time
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.engine import URL, create_engine
@@ -184,15 +183,8 @@ if __name__ == "__main__":
         port=LOGGING_PORT,
     )
     
-    schedule.every(pipeline_config.get("schedule").get("run_seconds")).seconds.do(
-        run_pipeline,
+    run_pipeline(
         pipeline_name=PIPELINE_NAME,
         postgresql_logging_client=postgresql_logging_client,
         pipeline_config=pipeline_config,
     )
-
-    while True:
-        schedule.run_pending()
-        time.sleep(pipeline_config.get("schedule").get("poll_seconds"))
-
-    
