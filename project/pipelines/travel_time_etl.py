@@ -95,7 +95,7 @@ def extract_transform_from_source(config: dict, pipeline_logging: PipelineLoggin
         port=SOURCE_PORT,
     )
     extract_template_environment = Environment(
-    loader=FileSystemLoader("../sql/extract")
+    loader=FileSystemLoader("sql/extract")
     )
     extract_load_from_source(
         template_env=extract_template_environment,
@@ -103,7 +103,7 @@ def extract_transform_from_source(config: dict, pipeline_logging: PipelineLoggin
         target_postgresql_client=target_postgresql_client
     )
     transform_template_environment = Environment(
-        loader=FileSystemLoader("../sql/transform")
+        loader=FileSystemLoader("sql/transform")
     )
     staging_travel_time_raw = SQLTransform(
         table_name="travel_time_staging",
