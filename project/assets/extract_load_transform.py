@@ -60,7 +60,7 @@ class SQLTransform:
             )
          """   
         self.postgresql_client.execute_sql(exec_sql)
-        print(exec_sql)
+
         
 def transform(dag: TopologicalSorter):
     """
